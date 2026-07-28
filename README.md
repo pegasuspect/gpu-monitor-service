@@ -1,28 +1,29 @@
-# NVIDIA GPU monitor installation
+# NVIDIA GPU Monitor Service
+I created this project to monitor a freezing, 5 year old GPU to see if there were
+any peaks on GPU parameters after having to hold down power button to force shutdown 
+after a few complete system lock-ups.
 
-This service records one sample per second and automatically changes CSV files
-at midnight in `America/New_York`. Each file is capped at 86,400 total lines,
-including its header. On an unusually long day or after unusually fast sampling,
-additional data goes into `-part2.csv` instead of exceeding that limit.
+The service records one sample per second and automatically starts to write to a new
+CSV file at midnight in GPU time. Each file should be capped at 86,400  (number of 
+seconds in 24 hours) total lines, including its header because having multiple
+smaller files are more manageable than having one giant master file. It is also easier to
+just look at current day's log file to inspect GPU levels if your system was frozen 
+after a reboot.
 
-## Install
-
-Run these commands from the extracted package directory:
+### Install
+If you run `./install.sh` after downloading this repo, the script will install a 
+linux service on your linux OS. Assuming you have an NVIDIA GPU and its drivers 
+installed, it should work without issues and write to a log file in your system.
+Details below.
 
 ```bash
-sudo install -m 0755 gpu-monitor.sh /usr/local/sbin/gpu-monitor.sh
-sudo install -m 0644 gpu-monitor.service /etc/systemd/system/gpu-monitor.service
-sudo install -d -m 0755 /var/log/gpu-monitor
-sudo systemctl daemon-reload
-sudo systemctl enable --now gpu-monitor.service
+sudo ./install.sh
 ```
 
-## Verify
+### Verify
 
 ```bash
-systemctl status gpu-monitor.service
-ls -lh /var/log/gpu-monitor/
-tail -n 5 /var/log/gpu-monitor/gpu-test-$(date +%F).csv
+./status.sh
 ```
 
 The service intentionally prints nothing to the terminal. Errors are available
@@ -32,7 +33,7 @@ with:
 journalctl -u gpu-monitor.service
 ```
 
-## Common operations
+### Common operations
 
 ```bash
 sudo systemctl restart gpu-monitor.service
@@ -40,15 +41,12 @@ sudo systemctl stop gpu-monitor.service
 sudo systemctl start gpu-monitor.service
 ```
 
-## Uninstall
+### Uninstall
 
 This leaves existing CSV logs intact:
 
 ```bash
-sudo systemctl disable --now gpu-monitor.service
-sudo rm /etc/systemd/system/gpu-monitor.service
-sudo rm /usr/local/sbin/gpu-monitor.sh
-sudo systemctl daemon-reload
+sudo ./uninstall.sh
 ```
 
-Delete `/var/log/gpu-monitor` separately only if you no longer want its logs.
+Delete `/var/log/gpu-monitor` folder separately only if you also want to delete all the CSV log files created by the service.
