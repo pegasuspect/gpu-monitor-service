@@ -1,0 +1,23 @@
+[Unit]
+Description=Daily NVIDIA GPU telemetry CSV logger
+After=multi-user.target
+
+[Service]
+Type=simple
+Environment=TZ=America/New_York
+Environment=GPU_LOG_DIR=/var/log/gpu-monitor
+ExecStart=/usr/local/sbin/gpu-monitor.sh
+Restart=on-failure
+RestartSec=5
+Nice=10
+IOSchedulingClass=idle
+StandardOutput=null
+StandardError=journal
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+ReadWritePaths=/var/log/gpu-monitor
+
+[Install]
+WantedBy=multi-user.target
